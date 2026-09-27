@@ -1,27 +1,30 @@
-using TravelApp.Models;
+﻿using TravelApp.Models;
+
+// Щоб українські літери (і, ї, є, ґ) правильно відображалися в консолі Windows
+Console.OutputEncoding = System.Text.Encoding.UTF8;
 
 Tour tour1 = new()
 {
     Country = "Італія",
     City = "Рим",
-    Price = 25000m
+    Price = 42300
 };
 
 Tour tour2 = new()
 {
-    Country = "Іспанія",
-    City = "Барселона",
-    Price = 21500m
+    Country = "Туреччина",
+    City = "Анталія",
+    Price = 28500
 };
 
 Client client1 = new()
 {
-    Name = "Андрій Мельник"
+    Name = "Олександр Бондаренко"
 };
 
 Client client2 = new()
 {
-    Name = "Марія Бондаренко"
+    Name = "Катерина Литвин"
 };
 
 Console.WriteLine("Тури:");
