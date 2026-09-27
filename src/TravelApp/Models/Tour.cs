@@ -1,20 +1,20 @@
 ﻿namespace TravelApp.Models;
 
 /// <summary>
-/// Туристична пропозиція (тур).
-/// Дані зберігаються в приватних полях, а доступ до них іде через властивості з перевірками.
+/// Базовий абстрактний клас туристичної пропозиції.
+/// Містить спільні для всіх турів дані, перевірки й бронювання.
+/// Створити «просто тур» не можна — лише конкретний тип: пляжний, екскурсійний чи пригодницький.
 /// </summary>
-public class Tour
+public abstract class Tour
 {
     private string _country = string.Empty;
     private string _city = string.Empty;
     private decimal _price;
 
     /// <summary>
-    /// Створює тур. Значення присвоюються через властивості,
-    /// тому ті самі перевірки працюють і під час створення, і під час зміни.
+    /// Конструктор protected: його викликають лише похідні класи через base(...).
     /// </summary>
-    public Tour(string country, string city, decimal price)
+    protected Tour(string country, string city, decimal price)
     {
         Country = country;
         City = city;
@@ -34,7 +34,7 @@ public class Tour
     }
 
     /// <summary>
-    /// Ціна туру, грн. Повинна бути більшою за нуль.
+    /// Базова ціна туру, грн. Повинна бути більшою за нуль.
     /// </summary>
     public decimal Price
     {
@@ -50,19 +50,39 @@ public class Tour
         }
     }
 
-    /// <summary>
-    /// Клієнт, який забронював тур. Змінити ззовні не можна: set приватний.
-    /// </summary>
     public Client? BookedBy { get; private set; }
 
-    /// <summary>
-    /// Чи доступний тур для бронювання. Обчислюється з BookedBy, тому стан завжди узгоджений.
-    /// </summary>
     public bool IsAvailable => BookedBy is null;
 
     /// <summary>
-    /// Бронює тур для клієнта. Повторне бронювання заборонене.
+    /// Назва типу туру. Абстрактна: кожен похідний клас зобов'язаний її визначити.
     /// </summary>
+    public abstract string TourType { get; }
+
+    /// <summary>
+    /// Підсумкова вартість туру. Віртуальна: базовий алгоритм повертає базову ціну,
+    /// а похідні класи перевизначають його (override).
+    /// </summary>
+    public virtual decimal CalculatePrice()
+    {
+        return Price;
+    }
+
+    /// <summary>
+    /// Особливості конкретного туру. Абстрактний метод без реалізації в базовому класі.
+    /// </summary>
+    protected abstract string GetDetails();
+
+    /// <summary>
+    /// Спільний для всіх турів формат опису. Метод один, але TourType, GetDetails()
+    /// і CalculatePrice() викликаються з того класу, яким є об'єкт насправді.
+    /// </summary>
+    public string GetInfo()
+    {
+        string status = BookedBy is null ? "доступний" : $"заброньовано: {BookedBy.Name}";
+        return $"{TourType}: {Country}, {City} ({GetDetails()}) – {CalculatePrice():0.##} грн [{status}]";
+    }
+
     public void BookTour(Client client)
     {
         ArgumentNullException.ThrowIfNull(client);
@@ -75,9 +95,6 @@ public class Tour
         BookedBy = client;
     }
 
-    /// <summary>
-    /// Скасовує бронювання. Скасувати можна лише заброньований тур.
-    /// </summary>
     public void CancelBooking()
     {
         if (IsAvailable)
@@ -86,15 +103,6 @@ public class Tour
         }
 
         BookedBy = null;
-    }
-
-    /// <summary>
-    /// Короткий опис туру разом із його станом.
-    /// </summary>
-    public string GetInfo()
-    {
-        string status = BookedBy is null ? "доступний" : $"заброньовано: {BookedBy.Name}";
-        return $"{Country}, {City} – {Price:0.##} грн [{status}]";
     }
 
     private static string RequireText(string value, string fieldName)
